@@ -1,0 +1,97 @@
+UI.AddCheckbox("AA indicators");
+UI.AddColorPicker("Manual colour");
+UI.AddColorPicker("Inverter colour");
+UI.AddColorPicker("Keybinds colour");
+UI.AddHotkey("Left key");
+UI.AddHotkey("Back key");
+UI.AddHotkey("Right key");
+
+var screen_size = Render.GetScreenSize();
+var left_active = 0;
+var back_active = 1;
+var right_active = 0;
+
+function cm_indicators()
+{
+    is_left_active = UI.IsHotkeyActive("Misc", "JAVASCRIPT", "Script items", "Left key");
+    is_back_active = UI.IsHotkeyActive("Misc", "JAVASCRIPT", "Script items", "Back key");
+    is_right_active = UI.IsHotkeyActive("Misc", "JAVASCRIPT", "Script items", "Right key");
+    
+    if (is_left_active)
+    {
+        left_active = 1;
+        back_active = 0;
+        right_active = 0;
+        UI.SetValue("Anti-Aim", "Rage Anti-Aim", "Yaw offset", -90);
+        UI.SetValue("Anti-Aim", "Fake angles", "Hide real angle", false);
+    }
+    else if (is_back_active)
+    {
+        left_active = 0;
+        back_active = 1;
+        right_active = 0;
+        UI.SetValue("Anti-Aim", "Rage Anti-Aim", "Yaw offset", 0);
+        UI.SetValue("Anti-Aim", "Fake angles", "Hide real angle", false);
+    }
+    else if (is_right_active)
+    {
+        left_active = 0;
+        back_active = 0;
+        right_active = 1;
+        UI.SetValue("Anti-Aim", "Rage Anti-Aim", "Yaw offset", 90);
+        UI.SetValue("Anti-Aim", "Fake angles", "Hide real angle", false);
+    }
+}
+
+function draw_indicators()
+{
+    local_player = Entity.GetLocalPlayer();
+    
+    if (!Entity.IsAlive(local_player)) 
+        return;
+
+    invert_active = UI.IsHotkeyActive("Anti-Aim", "Fake angles", "Inverter");
+    manual_colour = UI.GetColor("Misc", "JAVASCRIPT", "Script items", "Manual colour");
+    invert_colour = UI.GetColor("Misc", "JAVASCRIPT", "Script items", "Inverter colour");
+    key_colour = UI.GetColor("Misc", "JAVASCRIPT", "Script items", "Keybinds colour");
+    charge = Exploit.GetCharge();
+    indicator_font = Render.AddFont("Verdana", 8, 600);
+    doubletap_active = UI.IsHotkeyActive("Rage", "GENERAL", "Exploits", "Doubletap");
+    onshot_active = UI.IsHotkeyActive("Rage", "GENERAL", "Exploits", "Hide shots");
+    safe_active = UI.IsHotkeyActive("Rage", "GENERAL", "General", "Force safe point");
+    body_active = UI.IsHotkeyActive("Rage", "GENERAL", "General", "Force body aim");
+
+    lp_x = [(screen_size[0] / 2) - 53, (screen_size[1] / 2) + 10];
+    lp_y = [(screen_size[0] / 2) - 53, (screen_size[1] / 2) - 10];
+    lp_z = [(screen_size[0] / 2) - 70, (screen_size[1] / 2)];
+    bp_x = [(screen_size[0] / 2) + 10, (screen_size[1] / 2) + 53];
+    bp_y = [(screen_size[0] / 2) - 10, (screen_size[1] / 2) + 53];
+    bp_z = [(screen_size[0] / 2), (screen_size[1] / 2) + 70];
+    rp_x = [(screen_size[0] / 2) + 53, (screen_size[1] / 2) + 10];
+    rp_y = [(screen_size[0] / 2) + 53, (screen_size[1] / 2) - 10];
+    rp_z = [(screen_size[0] / 2) + 70, (screen_size[1] / 2)];
+    li_x = [(screen_size[0] / 2) - 53, (screen_size[1] / 2) + 38];
+    li_y = [(screen_size[0] / 2) - 38, (screen_size[1] / 2) + 53];
+    li_z = [(screen_size[0] / 2) - 53, (screen_size[1] / 2) + 53];
+    ri_x = [(screen_size[0] / 2) + 53, (screen_size[1] / 2) + 38];
+    ri_y = [(screen_size[0] / 2) + 38, (screen_size[1] / 2) + 53];
+    ri_z = [(screen_size[0] / 2) + 53, (screen_size[1] / 2) + 53];
+    
+    if (UI.GetValue("Misc", "JAVASCRIPT", "Script items", "AA indicators"))
+    {
+        Render.Polygon([lp_x, lp_z, lp_y], left_active ? manual_colour : [10, 10, 10, 55]);
+        Render.Polygon([bp_z, bp_y, bp_x], back_active ? manual_colour : [10, 10, 10, 55]);
+        Render.Polygon([rp_y, rp_z, rp_x], right_active ? manual_colour : [10, 10, 10, 55]);
+        
+        Render.Polygon([li_x, li_y, li_z], invert_active ? [10, 10, 10, 55] : invert_colour);
+        Render.Polygon([ri_z, ri_y, ri_x], invert_active ? invert_colour : [10, 10, 10, 55]);
+
+        Render.StringCustom(screen_size[0] / 2, screen_size[1] / 2 + 75, 1, "DOUBLETAP", doubletap_active ? key_colour : [10, 10, 10, 55], indicator_font);
+        Render.StringCustom(screen_size[0] / 2, screen_size[1] / 2 + 90, 1, "ON-SHOT", onshot_active ? key_colour : [10, 10, 10, 55], indicator_font);
+        Render.StringCustom(screen_size[0] / 2, screen_size[1] / 2 + 105, 1, "SAFE POINT", safe_active ? key_colour : [10, 10, 10, 55], indicator_font);
+        Render.StringCustom(screen_size[0] / 2, screen_size[1] / 2 + 120, 1, "BODY AIM", body_active ? key_colour : [10, 10, 10, 55], indicator_font);
+    }
+}
+
+Cheat.RegisterCallback("CreateMove", "cm_indicators");
+Cheat.RegisterCallback("Draw", "draw_indicators");
